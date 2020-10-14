@@ -1,13 +1,8 @@
-.login-kotak{
+.register-kotak{
     width: 50%;
     border: whitesmoke 5px solid;
-    height:50%;
+    height:55%;
     border-radius: 20px;
     color: whitesmoke;
     flex-direction: column;
 }
-
-.login-placeholder::placeholder{
-    color: white !important;
-}   
-

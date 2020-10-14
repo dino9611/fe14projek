@@ -1,5 +1,5 @@
 import React, { Component,createRef } from 'react';
-
+import './register.css'
 import Foto from './../../assets/register.webp'
 import { withStyles } from '@material-ui/core/styles';
 // import Axios from 'axios'
@@ -51,14 +51,16 @@ class Register extends Component {
         username:createRef(),
         password:createRef(),
         confirmpass:createRef(),
+        email:createRef(),
         alert:''
     }
 
-    OnLoginClick=()=>{
-        const {username,password,confirmpass}=this.state
+    OnRegisterClick=()=>{
+        const {username,password,confirmpass,email}=this.state
         var username1=username.current.value
         var password1=password.current.value
         var conpass=confirmpass.current.value
+        var email1=email.current.value
         // this.props.LoginThunk(username1,password1)
         if(this.chechpass(password1).status){
             if(password1==conpass){
@@ -158,7 +160,7 @@ class Register extends Component {
             <div className='row m-0 p-0'>
             
                 <div className='col-md-6 m-0 p-0 d-flex justify-content-center align-items-center' style={{background:'linear-gradient(45deg, #FE6B8B 30%, #FF8E53 90%)'}}>
-                    <div className='login-kotak d-flex px-4'>
+                    <div className='register-kotak d-flex px-4'>
                         <h1 className='align-self-center'>Register</h1>
                         <div className='mt-3'>
                             <TextField 
@@ -195,6 +197,21 @@ class Register extends Component {
                             <TextField 
                                 inputProps={{ className:'text-white'}} 
                                 className={classes.root} 
+                                inputRef={this.state.email} 
+                                InputLabelProps={{
+                                    className:'text-white'
+                                }}
+                                type="email"  
+                                label="Email" 
+                                fullWidth='true' 
+                                variant="outlined" 
+                                size='small' 
+                            />
+                        </div>
+                        <div className='mt-3'>
+                            <TextField 
+                                inputProps={{ className:'text-white'}} 
+                                className={classes.root} 
                                 inputRef={this.state.confirmpass} 
                                 InputLabelProps={{
                                     className:'text-white'
@@ -207,7 +224,7 @@ class Register extends Component {
                             />
                         </div>
                         <div className=' align-self-end mt-3 '>
-                            <button disabled={this.props.Auth.isLoading} onClick={this.OnLoginClick} className='px-3 py-2 rounded text-white' style={{border:'white 1px solid',backgroundColor:'transparent'}}>
+                            <button disabled={this.props.Auth.isLoading} onClick={this.OnRegisterClick} className='px-3 py-2 rounded text-white' style={{border:'white 1px solid',backgroundColor:'transparent'}}>
                                 Register
                             </button>
                         </div>

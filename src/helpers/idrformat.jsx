@@ -7,6 +7,7 @@ export const priceFormatter = (num) => {
 
 
 export const API_URL='http://localhost:4000'
+export const API_URLbe='http://localhost:8000'
 
 export const dateformat=(n)=>{
   var today = new Date(n);
