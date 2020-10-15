@@ -28,7 +28,7 @@ export const dateformat=(n)=>{
       a=y%(10)
       var b
       y=(y-a)/10
-      if(angka%2==1){
+      if(angka%2===1){
           a*=2
           if(a>9){
               b=a%10
@@ -42,7 +42,7 @@ export const dateformat=(n)=>{
       angka++
   } while (y>0);
   // console.log(angka)
-  if(output%10==0){
+  if(output%10===0){
     return true
   }else{
       return false

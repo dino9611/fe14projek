@@ -10,7 +10,7 @@ import {Redirect,Link} from 'react-router-dom'
 import {LoginFunc,LoginThunk,Clearfunc} from './../../redux/Actions'
 import {toast} from 'react-toastify'
 import Axios from 'axios';
-import { API_URL } from '../../helpers/idrformat';
+import { API_URL, API_URLbe } from '../../helpers/idrformat';
 const Styles={
     root:{
         'input': {
@@ -45,6 +45,8 @@ const Styles={
     }
 }
 toast.configure()
+
+
 class Register extends Component {
     
     state = {
@@ -63,35 +65,53 @@ class Register extends Component {
         var email1=email.current.value
         // this.props.LoginThunk(username1,password1)
         if(this.chechpass(password1).status){
-            if(password1==conpass){
-                Axios.get(`${API_URL}/users`,{
-                    params:{
-                        username:username1
-                    }
+            if(password1 === conpass){
+                Axios.post(`${API_URLbe}/auth/register`,{
+                    username:username1,
+                    password:password1,
+                    email:email1
                 })
                 .then((res)=>{
-                    if(res.data.length){
-                        toast.error('username telah dipakai', {
-                            position: "top-left",
-                            autoClose: 2000,
-                            hideProgressBar: false,
-                            closeOnClick: true,
-                            draggable: true,
-                            progress: undefined,
-                        });
-                    }else{
-                        Axios.post(`${API_URL}/users`,{
-                            username:username1,
-                            password:password1,
-                            role:'user'
-                        }).then((res1)=>{
-                            localStorage.setItem('id',res1.data.id)
-                            this.props.LoginFunc(res1.data,[])
-                        }).catch((err)=>{
-                            console.log(err)
-                        })
-                    }
+                    localStorage.setItem('id',res.data.id)
+                    this.props.LoginFunc(res.data,[])
+                }).catch((err)=>{
+                    toast.error(err.response.data.message, {
+                        position: "top-left",
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        draggable: true,
+                        progress: undefined,
+                    });
                 })
+                // Axios.get(`${API_URL}/users`,{
+                //     params:{
+                //         username:username1
+                //     }
+                // })
+                // .then((res)=>{
+                //     if(res.data.length){
+                //         toast.error('username telah dipakai', {
+                //             position: "top-left",
+                //             autoClose: 2000,
+                //             hideProgressBar: false,
+                //             closeOnClick: true,
+                //             draggable: true,
+                //             progress: undefined,
+                //         });
+                //     }else{
+                //         Axios.post(`${API_URL}/users`,{
+                //             username:username1,
+                //             password:password1,
+                //             role:'user'
+                //         }).then((res1)=>{
+                //             localStorage.setItem('id',res1.data.id)
+                //             this.props.LoginFunc(res1.data,[])
+                //         }).catch((err)=>{
+                //             console.log(err)
+                //         })
+                //     }
+                // })
             }else{
                 toast.error('confirmasi dan password harus sama', {
                     position: "top-left",

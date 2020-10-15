@@ -9,9 +9,9 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import {MdDeleteForever} from 'react-icons/md'
-import {BiEdit} from 'react-icons/bi'
+import {BiEdit,BiPlusCircle} from 'react-icons/bi'
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
-import {priceFormatter, API_URL} from '../../helpers/idrformat'
+import {priceFormatter, API_URL,API_URLbe} from '../../helpers/idrformat'
 import ButtonUi from './../../components/button'
 import axios from 'axios'
 import {connect} from 'react-redux'
@@ -30,14 +30,17 @@ const useStyles = makeStyles({
   const classes = useStyles();
   const [modal, setModal] = useState(false);
   const [modaledit, setModaledit] = useState(false);
+  const [modalfoto,setmodalfoto]=useState(false)
+  const [fotos,setfotos]=useState([null])
+  const [banner,setbanner]=useState(null)
 
   const [addform,setaddform]=useState({
     namaTrip:useRef(),
-    gambar:useRef(),
     tanggalmulai:useRef(),
     tanggalberakhir:useRef(),
     harga:'',
-    descripsi:useRef()
+    descripsi:useRef(),
+    capacity:useRef()
   })
   const [editform,seteditform]=useState({
     namaTrip:useRef(),
@@ -50,10 +53,13 @@ const useStyles = makeStyles({
   const [indexedit,setindexedit]=useState(0)
   const [product,setProduct]=useState([])
 
+
   useEffect(()=>{
+    console.log('masuk')
     const fetch=()=>{
-      axios.get(`${API_URL}/products`)
+      axios.get(`${API_URLbe}/product/getproduct`)
       .then((res)=>{
+        console.log(res.data)
         setProduct(res.data)
         seteditform({...editform,harga:res.data[0].harga})
       }).catch((err)=>{
@@ -63,6 +69,27 @@ const useStyles = makeStyles({
     fetch()
   },[])
 
+  const oninputfilechange=(e)=>{
+    console.log(e.target.files)
+    if(e.target.files[0]){
+        console.log(e.target.files[0])
+        setbanner(e.target.files[0])
+    }else{
+        console.log('hapus')
+        setbanner(null)
+    }
+  }
+  const oninputfilefotochange=(e,index)=>{
+    console.log(e.target.files)
+    if(e.target.files[0]){
+        console.log(e.target.files[0])
+        fotos[index]=e.target.files[0]
+        setfotos(fotos)
+    }else{
+        console.log('hapus')
+      
+    }
+  }
 
   const onhargachange=(e)=>{
     if(e.target.value===''){
@@ -126,36 +153,41 @@ const useStyles = makeStyles({
   }
 
   const OnAdddataClick=()=>{
+    var formData=new FormData()
+    var options={
+        headers:{
+          'Content-type':'multipart/form-data',
+        }
+    }
     var namatrip = addform.namaTrip.current.value
-    var gambar = addform.gambar.current.value
     var tanggalmulai=addform.tanggalmulai.current.value
     var tanggalberakhir=addform.tanggalberakhir.current.value
     var harga=addform.harga
     var deskripsi=addform.descripsi.current.value
-    var obj={
-      namatrip,
-      gambar,
+    var capacity=addform.capacity.current.value
+    var data={
+      namaproduct:namatrip,
+      capacity:capacity,
       tanggalmulai:new Date(tanggalmulai).getTime(),
       tanggalberakhir:new Date(tanggalberakhir).getTime(),
       harga,
       deskripsi
     }
-    if(obj.tanggalmulai>obj.tanggalberakhir || obj.tanggalmulai<new Date().getTime()){
+
+    formData.append('image',banner)
+    formData.append('data',JSON.stringify(data))
+
+    if(data.tanggalmulai>data.tanggalberakhir || data.tanggalmulai<new Date().getTime()){
       console.log('data tidak boleh masuk')
     }else{
-      axios.post(`${API_URL}/products`,obj)
-      .then(()=>{
-        axios.get(`${API_URL}/products`)
-        .then((res)=>{
-          setProduct(res.data)
-          setaddform({...addform,harga:''})
-          setModal(false)
-        }).catch((err)=>{
-          console.log(err)
-        })
+      axios.post(`${API_URLbe}/product/Addproduct`,formData,options)
+      .then((res)=>{
+        console.log(res.data)
+        alert('berhasil')
       }).catch((err)=>{
         console.log(err)
       })
+   
     }
   }
 
@@ -174,32 +206,32 @@ const useStyles = makeStyles({
   }
 
   const onSaveeditClick =(id)=>{
-    var namatrip = editform.namaTrip.current.value
-    var gambar = editform.gambar.current.value
-    var tanggalmulai=editform.tanggalmulai.current.value
-    var tanggalberakhir=editform.tanggalberakhir.current.value
-    var harga=editform.harga
-    var deskripsi=editform.descripsi.current.value
-    var obj={
-      namatrip,
-      gambar,
-      tanggalmulai:new Date(tanggalmulai).getTime(),
-      tanggalberakhir:new Date(tanggalberakhir).getTime(),
-      harga,
-      deskripsi
-    }
+    // var namatrip = editform.namaTrip.current.value
+    // var gambar = editform.gambar.current.value
+    // var tanggalmulai=editform.tanggalmulai.current.value
+    // var tanggalberakhir=editform.tanggalberakhir.current.value
+    // var harga=editform.harga
+    // var deskripsi=editform.descripsi.current.value
+    // var obj={
+    //   namatrip,
+    //   gambar,
+    //   tanggalmulai:new Date(tanggalmulai).getTime(),
+    //   tanggalberakhir:new Date(tanggalberakhir).getTime(),
+    //   harga,
+    //   deskripsi
+    // }
   
-    axios.put(`${API_URL}/products/${id}`,obj)
-    .then(()=>{
-      axios.get(`${API_URL}/products`)
-        .then((res)=>{
-          setProduct(res.data)
-          seteditform({...editform,harga:''})
-          setModaledit(false)
-        }).catch((err)=>{
-          console.log(err)
-        })
-    })
+    // axios.put(`${API_URL}/products/${id}`,obj)
+    // .then(()=>{
+    //   axios.get(`${API_URL}/products`)
+    //     .then((res)=>{
+    //       setProduct(res.data)
+    //       seteditform({...editform,harga:''})
+    //       setModaledit(false)
+    //     }).catch((err)=>{
+    //       console.log(err)
+    //     })
+    // })
   }
   
   const renderTable=()=>{
@@ -207,36 +239,62 @@ const useStyles = makeStyles({
       return(
         <TableRow key={val.id}>
             <TableCell>{index+1}</TableCell>
-            <TableCell>{val.namatrip}</TableCell>
+            <TableCell>{val.namaproduct}</TableCell>
             <TableCell>
               <div style={{maxWidth:'200px'}}>
-                <img width='100%' height='100%' src={val.gambar} alt={val.namatrip}/>
+                <img width='100%' height='100%' src={API_URLbe+val.banner} alt={val.namaproduct}/>
               </div>
             </TableCell>
             <TableCell>{dateformat(val.tanggalmulai)}</TableCell>
             <TableCell>{dateformat(val.tanggalberakhir)}</TableCell>
             <TableCell>{priceFormatter(val.harga)}</TableCell>
+            <TableCell>{val.capacity}</TableCell>
             <TableCell>{readMore(val.deskripsi)}</TableCell>
             <TableCell>
               <span style={{fontSize:30}} className='text-danger mr-3'><MdDeleteForever/></span>
-              <span style={{fontSize:30}} onClick={()=>Oneditclick(index)} className='text-primary ml-3'><BiEdit/></span>  
+              <span style={{fontSize:30}}  className='text-primary ml-3'><BiEdit/></span>  
+              <span style={{fontSize:30}} onClick={togglefoto}  className='text-primary ml-3'><BiPlusCircle/></span>  
             </TableCell>
         </TableRow>
       )
     })
   }
 
-  const toggle = () => setModal(!modal);
+  const toggle = () => {
+    setModal(!modal)
+    setbanner(null)
+  }
+  const togglefoto = () => {
+    setmodalfoto(!modalfoto)
+    // setbanner(null)
+  }
+    
   const toggleedit = () => setModaledit(!modaledit);
 
-  
+  const tambahfoto=()=>{
+    // let arr=fotos
+    // arr.push(null)
+    // console.log(arr.length)
+    setfotos([...fotos,null])
+  }
+  console.log(fotos)
     return (
         <>
-          <Modal isOpen={modal} toggle={toggle} >
+          <Modal style={{marginTop:80}} isOpen={modal} toggle={toggle} >
               <ModalHeader toggle={toggle}>Add data</ModalHeader>
               <ModalBody>
                  <input type='text' ref={addform.namaTrip} placeholder='Masukkan Nama' className='form-control mb-2'/>
-                 <input type='text' ref={addform.gambar} placeholder='Masukkan Gambar' className='form-control mb-2'/>
+                 <input type="file" className='form-control' onChange={oninputfilechange} />
+                 {
+                   banner?
+                   <div className='my-2'>
+                     <img src={URL.createObjectURL(banner)} height='200'
+                     widht='200' alt="foto"/>
+
+                   </div>
+                   :
+                   null
+                 }
                  <label className='ml-1'>
                    Tanggal mulai
                  </label>
@@ -245,11 +303,12 @@ const useStyles = makeStyles({
                    Tanggal berakhir
                  </label>
                  <input type='date' ref={addform.tanggalberakhir} placeholder='tanggal berakhir' className='form-control mb-2'/>
+                 <input type='number' ref={addform.capacity} placeholder='capacity' className='form-control mb-2'/>
                  <input type='text' onChange={onhargachange} placeholder='Rp....' value={addform.harga} className='form-control mb-2'/>
                  <textarea className='form-control mb-2' ref={addform.descripsi} placeholder='deskripsi' cols="30" rows="7"></textarea>
               </ModalBody>
               <ModalFooter>
-                  <Button color="primary" onClick={OnAdddataClick}>Do Something</Button>
+                  <Button color="primary" onClick={OnAdddataClick}>Add data</Button>
                   <Button color="secondary" onClick={toggle}>Cancel</Button>
               </ModalFooter>
           </Modal>
@@ -279,6 +338,24 @@ const useStyles = makeStyles({
             :
             null
           }
+          <Modal style={{marginTop:80}} isOpen={modalfoto} toggle={togglefoto} >
+              <ModalHeader toggle={togglefoto}>Add Foto</ModalHeader>
+              <ModalBody>
+                  {
+                    fotos.map((val,index)=>{
+                      return(
+                        <input type="file" onChange={(e)=>oninputfilefotochange(e,index)}  className='form-control' />
+                       
+                      )
+                    })
+                  }
+                  <BiPlusCircle onClick={tambahfoto} />
+              </ModalBody>
+              <ModalFooter>
+                  <Button color="primary" onClick={OnAdddataClick}>Add data</Button>
+                  <Button color="secondary" onClick={toggle}>Cancel</Button>
+              </ModalFooter>
+          </Modal>
           <Header/>
           <div className='px-5 martgintop'>
               <ButtonUi onClick={toggle} className='my-3' >
@@ -295,6 +372,7 @@ const useStyles = makeStyles({
                           <TableCell>Tanggal mulai</TableCell>
                           <TableCell>Tanggal berakhir</TableCell>
                           <TableCell>Harga</TableCell>
+                          <TableCell>Capacity</TableCell>
                           <TableCell style={{width:'300px'}}>Description</TableCell>
                           <TableCell >action</TableCell>
                         </TableRow>

@@ -9,7 +9,7 @@ import {Switch,Route} from 'react-router-dom'
 import Login from './pages/Login/Login'
 import {connect} from 'react-redux'
 import {LoginFunc} from './redux/Actions'
-import {API_URL} from './helpers/idrformat'
+import {API_URLbe} from './helpers/idrformat'
 import Axios from 'axios'
 import Cart from './pages/cart'
 import DetailProd from './pages/detailprod'
@@ -29,30 +29,39 @@ function App(props) {
   useEffect( ()=>{
     var id=localStorage.getItem('id')
     if(id){ 
-      Axios.get(`${API_URL}/users/${id}`)
+      Axios.get(`${API_URLbe}/auth/keeplogin/${id}`)
       .then((res)=>{
-        Axios.get(`${API_URL}/carts`,{
-          params:{
-              userId:res.data.id,
-              _expand:'product'
-          }
-        }).then((res1)=>{
-            props.LoginFunc(res.data,res1.data)
-            // setloading(false)
-        }).catch((err)=>{
-            console.log(err)
-            // setloading(false)
-        })
-        .finally(()=>{
-          setloading(false)
-        })
+        props.LoginFunc(res.data.datauser,res.data.cart)
       }).catch((err)=>{
-        console.log(err)
+        console.log(err.response.data.message)
+      }).finally(()=>{
+        setloading(false)
       })
+      //ini jason server
+      // Axios.get(`${API_URL}/users/${id}`)
+      // .then((res)=>{
+      //   Axios.get(`${API_URL}/carts`,{
+      //     params:{
+      //         userId:res.data.id,
+      //         _expand:'product'
+      //     }
+      //   }).then((res1)=>{
+      //       props.LoginFunc(res.data,res1.data)
+      //       // setloading(false)
+      //   }).catch((err)=>{
+      //       console.log(err)
+      //       // setloading(false)
+      //   })
+      //   .finally(()=>{
+      //     setloading(false)
+      //   })
+      // }).catch((err)=>{
+      //   console.log(err)
+      // }).
     }else{
       setloading(false)
     }
-  },[])
+  },[props])
   if(loading){
     return(
       <Loading/>
@@ -60,7 +69,7 @@ function App(props) {
   }
 
   const renderProtectedroutesadmin=()=>{
-    if(props.role=='admin'){
+    if(props.role==='admin'){
       return(
         <>
           <Route exact path='/manageAdmin' component={ManageAdmin}/>
