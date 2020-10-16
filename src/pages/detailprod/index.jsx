@@ -4,7 +4,7 @@ import { Breadcrumb, BreadcrumbItem,Modal,ModalBody,ModalFooter} from 'reactstra
 import {Link,Redirect} from 'react-router-dom'
 import Axios from 'axios'
 import ButtonUi from './../../components/button'
-import { API_URL,dateformat } from '../../helpers/idrformat';
+import { API_URL,dateformat,API_URLbe } from '../../helpers/idrformat';
 import {connect} from 'react-redux'
 import {AddcartAction} from './../../redux/Actions'
 import {toast} from 'react-toastify'
@@ -14,13 +14,15 @@ class DetailProd extends Component {
         products:{},
         qty:createRef(),
         isOpen:false,
-        kelogin:false
+        kelogin:false,
+        photo:[]
     }
 
     componentDidMount(){
-        Axios.get(`${API_URL}/products/${this.props.match.params.id}`)
+        Axios.get(`${API_URLbe}/product/getproduct/${this.props.match.params.id}`)
         .then((res)=>{
-            this.setState({products:res.data,loading:false})
+            console.log(res.data)
+            this.setState({products:res.data.dataprod,loading:false,photo:res.data.datafoto})
         }).catch((err)=>{
             console.log(err)
         })
@@ -95,7 +97,17 @@ class DetailProd extends Component {
             this.setState({isOpen:true})
         }
     }
-     
+    
+    renderfoto=()=>{
+        return this.state.photo.map((val,index)=>{
+            return(
+                <div className="col-md-3" key={index}>
+                    <img src={API_URLbe+val.gambar} style={{objectFit:'cover',objectPosition:'bottom'}} height='100%' width='100%' alt={"foo"}/>
+                </div>
+            )
+        })
+    }
+
     onRedirecttoLogin=()=>{
         this.setState({isOpen:false,kelogin:true})
     }
@@ -126,16 +138,19 @@ class DetailProd extends Component {
                     <Breadcrumb className='tranparant m-0 px-2 '>
                         <BreadcrumbItem ><Link className='link-class' to="/">Home</Link></BreadcrumbItem>
                         <BreadcrumbItem ><Link className='link-class' to="/products">Products</Link></BreadcrumbItem>
-                        <BreadcrumbItem active >{this.state.products.namatrip}</BreadcrumbItem>
+                        <BreadcrumbItem active >{this.state.products.namaproduct}</BreadcrumbItem>
                     </Breadcrumb>
                     <div className="pt-3 px-4">
                         <div style={{width:'100%',height:400,}}>
-                            <img src={products.gambar} style={{objectFit:'cover',objectPosition:'bottom'}} height='100%' width='100%' alt={"foo"}/>
+                            <img src={API_URLbe+products.banner} style={{objectFit:'cover',objectPosition:'bottom'}} height='100%' width='100%' alt={"foo"}/>
+                        </div>
+                        <div className="row">
+                            {this.renderfoto()}
                         </div>
                         <h5 className='mt-2'>Tanggal mulai :{dateformat(products.tanggalmulai)}</h5>
                         <h5 className='mt-2'>Tanggal berakhir :{dateformat(products.tanggalberakhir)}</h5>
                         <h2 className='mt-2'>
-                            {products.namatrip}
+                            {products.namaproduct}
                         </h2>
                         <label>jumlah tiket</label><br/>
                         <input type="number" className={'form-control'} placeholder='qty' style={{width:200}} ref={this.state.qty}/>

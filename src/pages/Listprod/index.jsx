@@ -4,7 +4,7 @@ import './listprod.css'
 import { Breadcrumb, BreadcrumbItem, Card, CardImg} from 'reactstrap';
 import Axios from 'axios'
 import {Link} from 'react-router-dom'
-import { API_URL,priceFormatter } from '../../helpers/idrformat';
+import { API_URL,priceFormatter,API_URLbe } from '../../helpers/idrformat';
 import {ButtonUi} from './../../components'
 
 
@@ -14,7 +14,7 @@ class ListProd extends Component {
     }
 
     componentDidMount(){
-        Axios.get(`${API_URL}/products`
+        Axios.get(`${API_URLbe}/product/getproduct`
         // ,{
         //     params:{
         //         tanggalmulai_gte:new Date().getTime()
@@ -22,8 +22,8 @@ class ListProd extends Component {
         // }
         )
         .then((res)=>{
-            var filter=res.data.filter((val)=>val.tanggalmulai>=new Date().getTime())
-            this.setState({Products:filter})
+            // var filter=res.data.filter((val)=>val.tanggalmulai>=new Date().getTime())
+            this.setState({Products:res.data})
         }).catch((err)=>{
             console.log(err)
         })
@@ -50,11 +50,12 @@ class ListProd extends Component {
                 <div key={val.id} className="col-md-3 px-2 py-2">
                     <Link to={'/products/'+val.id}>
                         <Card className='kartu card-rounded'>
-                            <CardImg top width="100%" className='card-rounded' height={200} src={val.gambar} alt="Card image cap" />
+                            <CardImg top width="100%" className='card-rounded' height={200} src={API_URLbe
+                                 +val.banner} alt="Card image cap" />
                             <div class="overlay card-rounded">
                                 <div class="text">
                                     <div>
-                                        {val.namatrip}
+                                        {val.namaproduct}
                                     </div>
                                     <div>
                                         {priceFormatter(val.harga)}

@@ -10,7 +10,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import {MdDeleteForever} from 'react-icons/md'
 import {BiEdit,BiPlusCircle} from 'react-icons/bi'
-import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
+import { Button, Modal, ModalHeader, ModalBody, ModalFooter,CustomInput } from 'reactstrap';
 import {priceFormatter, API_URL,API_URLbe} from '../../helpers/idrformat'
 import ButtonUi from './../../components/button'
 import axios from 'axios'
@@ -26,12 +26,15 @@ const useStyles = makeStyles({
   },
 });
 
- function StickyHeadTable(props) {
+function StickyHeadTable(props) {
   const classes = useStyles();
   const [modal, setModal] = useState(false);
   const [modaledit, setModaledit] = useState(false);
+
   const [modalfoto,setmodalfoto]=useState(false)
   const [fotos,setfotos]=useState([null])
+  const [idproductselect,setidproductselect]=useState(0)//harusnya id productselect
+
   const [banner,setbanner]=useState(null)
 
   const [addform,setaddform]=useState({
@@ -79,15 +82,20 @@ const useStyles = makeStyles({
         setbanner(null)
     }
   }
+
   const oninputfilefotochange=(e,index)=>{
     console.log(e.target.files)
     if(e.target.files[0]){
         console.log(e.target.files[0])
-        fotos[index]=e.target.files[0]
-        setfotos(fotos)
+        let foto=fotos
+        foto.splice(index,1,e.target.files[0])
+        setfotos([...foto])
     }else{
+      // codingan ini bissa buat hapus foto yang ada
         console.log('hapus')
-      
+        let foto=fotos
+        foto.splice(index,1,null)
+        setfotos([...foto])
     }
   }
 
@@ -96,7 +104,7 @@ const useStyles = makeStyles({
       setaddform({...addform,harga:0})
     }
     if(Number(e.target.value)){
-        if(addform.harga===0){
+        if(addform.harga === 0){
             setaddform({...addform,harga:e.target.value[1]})
         }else{
             setaddform({...addform,harga:e.target.value})    
@@ -187,10 +195,30 @@ const useStyles = makeStyles({
       }).catch((err)=>{
         console.log(err)
       })
-   
     }
   }
 
+
+  const onAddphotoprod=()=>{
+    var formData=new FormData()
+    var options={
+        headers:{
+          'Content-type':'multipart/form-data',
+        }
+    }
+    fotos.forEach((val)=>{
+      formData.append('image',val)
+    })
+    formData.append('data',JSON.stringify({product_id:idproductselect}))
+    axios.post(`${API_URLbe}/product/Addproductfoto`,formData,options)
+    .then((res)=>{
+      console.log(res.data)
+      alert('berhasil')
+    }).catch((err)=>{
+      console.log(err)
+    })
+   
+  }
   // useEffect(()=>{
   //   if(product.length){
   //     seteditform({...editform,harga:product[indexedit].harga})
@@ -253,7 +281,7 @@ const useStyles = makeStyles({
             <TableCell>
               <span style={{fontSize:30}} className='text-danger mr-3'><MdDeleteForever/></span>
               <span style={{fontSize:30}}  className='text-primary ml-3'><BiEdit/></span>  
-              <span style={{fontSize:30}} onClick={togglefoto}  className='text-primary ml-3'><BiPlusCircle/></span>  
+              <span style={{fontSize:30}} onClick={()=>togglefoto(val.id)}  className='text-primary ml-3'><BiPlusCircle/></span>  
             </TableCell>
         </TableRow>
       )
@@ -264,19 +292,22 @@ const useStyles = makeStyles({
     setModal(!modal)
     setbanner(null)
   }
-  const togglefoto = () => {
-    setmodalfoto(!modalfoto)
+  const togglefoto = (id) => {
+    setmodalfoto(!modalfoto) //untuk buka modal
+    setfotos([null]) //hapus foto yang ada diaaray
+    if(id){
+      setidproductselect(id) //untuk select id product guanya utntuk dikirimkan ke backend
+    }
     // setbanner(null)
   }
     
   const toggleedit = () => setModaledit(!modaledit);
 
   const tambahfoto=()=>{
-    // let arr=fotos
-    // arr.push(null)
-    // console.log(arr.length)
+ 
     setfotos([...fotos,null])
   }
+
   console.log(fotos)
     return (
         <>
@@ -339,21 +370,32 @@ const useStyles = makeStyles({
             null
           }
           <Modal style={{marginTop:80}} isOpen={modalfoto} toggle={togglefoto} >
-              <ModalHeader toggle={togglefoto}>Add Foto</ModalHeader>
+              <ModalHeader toggle={togglefoto}>Add Fotobanyak</ModalHeader>
               <ModalBody>
                   {
                     fotos.map((val,index)=>{
+                      if(val){
+                        return(
+                          <>
+                            <CustomInput label={val.name} type="file" onChange={(e)=>oninputfilefotochange(e,index)}  className='form-control' />
+                            <div className='my-2'>
+                              <img src={URL.createObjectURL(val)} height='200' widht='200' alt="foto"/>
+                            </div>
+                          </>
+                        )
+                      }
                       return(
-                        <input type="file" onChange={(e)=>oninputfilefotochange(e,index)}  className='form-control' />
-                       
+                        <>
+                          <CustomInput label={'select image ....'} type="file" onChange={(e)=>oninputfilefotochange(e,index)}  className='form-control' />
+                        </>
                       )
                     })
                   }
                   <BiPlusCircle onClick={tambahfoto} />
               </ModalBody>
               <ModalFooter>
-                  <Button color="primary" onClick={OnAdddataClick}>Add data</Button>
-                  <Button color="secondary" onClick={toggle}>Cancel</Button>
+                  <Button color="primary" onClick={onAddphotoprod}>Add data</Button>
+                  <Button color="secondary" onClick={togglefoto}>Cancel</Button>
               </ModalFooter>
           </Modal>
           <Header/>

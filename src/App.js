@@ -33,7 +33,7 @@ function App(props) {
       .then((res)=>{
         props.LoginFunc(res.data.datauser,res.data.cart)
       }).catch((err)=>{
-        console.log(err.response.data.message)
+        console.log(err)
       }).finally(()=>{
         setloading(false)
       })
