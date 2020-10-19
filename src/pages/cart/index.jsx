@@ -2,7 +2,7 @@ import React, { Component, createRef } from 'react';
 import Header from '../../components/Header'
 import {connect} from 'react-redux'
 import Axios from 'axios'
-import { API_URL, priceFormatter,credit } from '../../helpers/idrformat';
+import { API_URL,API_URLbe, priceFormatter,credit } from '../../helpers/idrformat';
 import Notfound from './../notfound'
 import Paper from '@material-ui/core/Paper';
 import Table from '@material-ui/core/Table';
@@ -13,7 +13,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import TableFooter from '@material-ui/core/TableFooter';
 import ButtonUi from './../../components/button'
-import {Modal,ModalHeader,ModalBody,ModalFooter} from 'reactstrap'
+import {Modal,ModalHeader,ModalBody,ModalFooter,CustomInput} from 'reactstrap'
 import {AddcartAction} from './../../redux/Actions'
 
 class Cart extends Component {
@@ -22,29 +22,39 @@ class Cart extends Component {
         isOpen:false,
         pilihan:0,
         bukti:createRef(),
-        cc:createRef()
+        cc:createRef(),
+        idtrans:0,
+        buktitrans:null,
+
     }
     componentDidMount(){
         // Axios.get(`${API_URL}/carts?userId=${this.props.id}&_expand=product`)
         console.log(this.props.id)
-        Axios.get(`${API_URL}/carts`,{
+        Axios.get(`${API_URLbe}/trans/getcart`,{
             params:{
-                userId:this.props.id,
-                _expand:'product'
+                userid:this.props.id,
             }
         })
         .then((res)=>{
             console.log(res.data)
-            this.setState({cart:res.data})
+            this.setState({cart:res.data,idtrans:res.data[0].idtrans})
         }).catch((err)=>{
             console.log(err)
         })
     }
 
+    oninputfilechange=(e)=>{
+        if(e.target.files[0]){
+            this.setState({buktitrans:e.target.files[0]})
+        }else{
+            // console.log('hapus')
+            this.setState({buktitrans:null})
+        }
+      }
 
     renderTotalHarga=()=>{
         var total=this.state.cart.reduce((total,num)=>{
-            return total+(num.product.harga*num.qty)
+            return total+(num.harga*num.qty)
         },0)
         return total
     }
@@ -52,17 +62,17 @@ class Cart extends Component {
     renderCart=()=>{
         return this.state.cart.map((val,index)=>{
             return(
-                <TableRow key={val.id}>
+                <TableRow key={index}>
                     <TableCell>{index+1}</TableCell>
-                    <TableCell>{val.product.namatrip}</TableCell>
+                    <TableCell>{val.namaproduct}</TableCell>
                     <TableCell>
                         <div style={{maxWidth:'200px'}}>
-                            <img width='100%' height='100%' src={val.product.gambar} alt={val.product.namatrip}/>
+                            <img width='100%' height='100%' src={API_URLbe+val.banner} alt={val.namaproduct}/>
                         </div>
                     </TableCell>
                     <TableCell>{val.qty}</TableCell>
-                    <TableCell>{priceFormatter(val.product.harga)}</TableCell>
-                    <TableCell>{priceFormatter(val.product.harga*val.qty)}</TableCell>
+                    <TableCell>{priceFormatter(val.harga)}</TableCell>
+                    <TableCell>{priceFormatter(val.harga*val.qty)}</TableCell>
                 </TableRow>
             )
         })
@@ -86,51 +96,62 @@ class Cart extends Component {
         }
     }
     onbayarpakeCC=()=>{
-        Axios.post(`${API_URL}/transactions`,{
-            status:'Completed',
-            userId:this.props.id,
-            tanggalPembayaran:new Date().getTime(),
-            metode:'cc',
-            buktipembayaran:this.state.cc.current.value
+        Axios.post(`${API_URLbe}/trans/bayarcc`,{
+            idtrans:this.state.idtrans,
+            nomercc:this.state.cc.current.value
         }).then((res)=>{
-            var arr=[]
-            this.state.cart.forEach((val)=>{
-                arr.push(Axios.post(`${API_URL}/transactionsdetails`,{
-                    transactionId:res.data.id,
-                    productId:val.productId,
-                    price: parseInt(val.product.harga),
-                    qty:val.qty
-                }))
-            })
-            Axios.all(arr).then((res1)=>{
-                var deletearr=[]
-                this.state.cart.forEach((val)=>{
-                    deletearr.push(Axios.delete(`${API_URL}/carts/${val.id}`))
-                })
-                Axios.all(deletearr)
-                .then(()=>{
-                    Axios.get(`${API_URL}/carts`,{
-                        params:{
-                            userId:this.props.id,
-                            _expand:'product'
-                        }
-                    })
-                    .then((res3)=>{
-                        console.log(res3.data)
-                        this.props.AddcartAction([])
-                        this.setState({cart:res3.data,isOpen:false})
-                    }).catch((err)=>{
-                        console.log(err)
-                    })
-                }).catch((Err)=>{
-                    console.log(Err)
-                })
-            }).catch((err)=>{
-                console.log(err)
-            })
-        }).catch((err)=>{
-
+            if(res.data === 'berhasil'){
+                this.props.AddcartAction([])
+                this.setState({cart:[],isOpen:false})
+            }
+        }).catch(err=>{
+            console.log(err)
         })
+        // Axios.post(`${API_URL}/transactions`,{
+        //     status:'Completed',
+        //     userId:this.props.id,
+        //     tanggalPembayaran:new Date().getTime(),
+        //     metode:'cc',
+        //     buktipembayaran:this.state.cc.current.value
+        // }).then((res)=>{
+        //     var arr=[]
+        //     this.state.cart.forEach((val)=>{
+        //         arr.push(Axios.post(`${API_URL}/transactionsdetails`,{
+        //             transactionId:res.data.id,
+        //             productId:val.productId,
+        //             price: parseInt(val.product.harga),
+        //             qty:val.qty
+        //         }))
+        //     })
+        //     Axios.all(arr).then((res1)=>{
+        //         var deletearr=[]
+        //         this.state.cart.forEach((val)=>{
+        //             deletearr.push(Axios.delete(`${API_URL}/carts/${val.id}`))
+        //         })
+        //         Axios.all(deletearr)
+        //         .then(()=>{
+        //             Axios.get(`${API_URL}/carts`,{
+        //                 params:{
+        //                     userId:this.props.id,
+        //                     _expand:'product'
+        //                 }
+        //             })
+        //             .then((res3)=>{
+        //                 console.log(res3.data)
+        //                 this.props.AddcartAction([])
+        //                 this.setState({cart:res3.data,isOpen:false})
+        //             }).catch((err)=>{
+        //                 console.log(err)
+        //             })
+        //         }).catch((Err)=>{
+        //             console.log(Err)
+        //         })
+        //     }).catch((err)=>{
+        //         console.log(err)
+        //     })
+        // }).catch((err)=>{
+
+        // })
     }
     onbayarpakebukti=()=>{
         Axios.post(`${API_URL}/transactions`,{
@@ -243,7 +264,7 @@ class Cart extends Component {
                                 <input className='form-control' ref={this.state.cc} placeholder='masukkan cc'/>
                                 :
                                 this.state.pilihan==1?
-                                <input className='form-control' ref={this.state.bukti}  placeholder='input bukti pembayaran'/>
+                                <CustomInput className='form-control' onChange={this.oninputfilechange} type='file'   label={this.state.buktitrans?this.state.buktitrans.name:'Select bukti'}/>
                                 :
                                 null
                             }

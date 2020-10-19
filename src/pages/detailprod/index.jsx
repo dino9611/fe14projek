@@ -8,6 +8,8 @@ import { API_URL,dateformat,API_URLbe } from '../../helpers/idrformat';
 import {connect} from 'react-redux'
 import {AddcartAction} from './../../redux/Actions'
 import {toast} from 'react-toastify'
+import SliderSlick from './../../components/Slider'
+
 class DetailProd extends Component {
     state = {
         loading:true,
@@ -31,57 +33,74 @@ class DetailProd extends Component {
     onAddToCart=()=>{
         if(this.props.role==='admin'){
             alert('jangan beli bro inget admin')
+        }else if(!this.props.verified){
+            alert('harus verified dulu')
         }else if(this.props.role==='user'){
             if(this.state.qty.current.value){
-                console.log(this.state.products.id)
-                Axios.get(`${API_URL}/carts`,{
-                    params:{
-                        userId:this.props.id,
-                        productId:this.state.products.id
-                    }
+                Axios.post(`${API_URLbe}/trans/Addtocart`,{
+                    userid:this.props.id,
+                    productid:this.state.products.id,
+                    qty:this.state.qty.current.value
+                },{
+                    headers:{
+                        'Authorization':`Bearer ${this.props.token}`
+                    },
                 }).then((res)=>{
-                    if(res.data.length){
-                        console.log(res.data)
-                        Axios.patch(`${API_URL}/carts/${res.data[0].id}`,{
-                            qty:parseInt(this.state.qty.current.value) + parseInt(res.data[0].qty)
-                        }).then(()=>{
-                            Axios.get(`${API_URL}/carts`,{
-                                params:{
-                                    userId:this.props.id,
-                                    _expand:'product'
-                                }
-                            }).then((res1)=>{
-                                this.props.AddcartAction(res1.data)
-                                alert('berhasil masuk cart')
-                            }).catch((err)=>{
-                                console.log(err)
-                            })
-                        }).catch((err)=>{
-                            console.log(err)
-                        })
-                    }else{
-                        Axios.post(`${API_URL}/carts`,{
-                            userId:this.props.id,
-                            productId:this.state.products.id,
-                            qty: parseInt(this.state.qty.current.value)
-                        }).then(()=>{
-                            Axios.get(`${API_URL}/carts`,{
-                                params:{
-                                    userId:this.props.id,
-                                    _expand:'product'
-                                }
-                            }).then((res)=>{
-                                this.props.AddcartAction(res.data)
-                                alert('berhasil masuk cart')
-                            }).catch((err)=>{
-                                console.log(err)
-                            })
-                        })
-
-                    }
+                    this.props.AddcartAction(res.data)
+                    alert('berhasil masuk cart')
                 }).catch((err)=>{
                     console.log(err)
+                    alert(err)
                 })
+                // console.log(this.state.products.id)
+                // Axios.get(`${API_URL}/carts`,{
+                //     params:{
+                //         userId:this.props.id,
+                //         productId:this.state.products.id
+                //     }
+                // }).then((res)=>{
+                //     if(res.data.length){
+                //         console.log(res.data)
+                //         Axios.patch(`${API_URL}/carts/${res.data[0].id}`,{
+                //             qty:parseInt(this.state.qty.current.value) + parseInt(res.data[0].qty)
+                //         }).then(()=>{
+                //             Axios.get(`${API_URL}/carts`,{
+                //                 params:{
+                //                     userId:this.props.id,
+                //                     _expand:'product'
+                //                 }
+                //             }).then((res1)=>{
+                //                 this.props.AddcartAction(res1.data)
+                //                 alert('berhasil masuk cart')
+                //             }).catch((err)=>{
+                //                 console.log(err)
+                //             })
+                //         }).catch((err)=>{
+                //             console.log(err)
+                //         })
+                //     }else{
+                //         Axios.post(`${API_URL}/carts`,{
+                //             userId:this.props.id,
+                //             productId:this.state.products.id,
+                //             qty: parseInt(this.state.qty.current.value)
+                //         }).then(()=>{
+                //             Axios.get(`${API_URL}/carts`,{
+                //                 params:{
+                //                     userId:this.props.id,
+                //                     _expand:'product'
+                //                 }
+                //             }).then((res)=>{
+                //                 this.props.AddcartAction(res.data)
+                //                 alert('berhasil masuk cart')
+                //             }).catch((err)=>{
+                //                 console.log(err)
+                //             })
+                //         })
+
+                //     }
+                // }).catch((err)=>{
+                //     console.log(err)
+                // })
             }else{
                 toast('salah broo harusnya qty disii', {
                     position: "top-right",
@@ -101,8 +120,8 @@ class DetailProd extends Component {
     renderfoto=()=>{
         return this.state.photo.map((val,index)=>{
             return(
-                <div className="col-md-3" key={index}>
-                    <img src={API_URLbe+val.gambar} style={{objectFit:'cover',objectPosition:'bottom'}} height='100%' width='100%' alt={"foo"}/>
+                <div style={{height:'200px'}} key={index}>
+                    <img src={API_URLbe+val.gambar} style={{objectFit:'cover',objectPosition:'bottom'}}  height='200' width='100%' alt={"foo"}/>
                 </div>
             )
         })
@@ -144,8 +163,10 @@ class DetailProd extends Component {
                         <div style={{width:'100%',height:400,}}>
                             <img src={API_URLbe+products.banner} style={{objectFit:'cover',objectPosition:'bottom'}} height='100%' width='100%' alt={"foo"}/>
                         </div>
-                        <div className="row">
-                            {this.renderfoto()}
+                        <div className='pt-3' style={{paddingRight:300,paddingLeft:300}}>
+                            <SliderSlick>
+                                {this.renderfoto()}
+                            </SliderSlick>
                         </div>
                         <h5 className='mt-2'>Tanggal mulai :{dateformat(products.tanggalmulai)}</h5>
                         <h5 className='mt-2'>Tanggal berakhir :{dateformat(products.tanggalberakhir)}</h5>

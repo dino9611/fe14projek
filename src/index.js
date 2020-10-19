@@ -9,6 +9,7 @@ import {createStore,applyMiddleware} from 'redux'
 import Reducers from './redux/reducers'
 import {BrowserRouter} from 'react-router-dom'
 import Thunk from 'redux-thunk'
+
 ReactDOM.render(
   <React.StrictMode>
     <Provider store={createStore(Reducers,{},applyMiddleware(Thunk))}>
