@@ -9,7 +9,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Axios from 'axios'
 import {ButtonUi} from './../../components'
-import { API_URL,priceFormatter } from '../../helpers/idrformat';
+import { API_URL,priceFormatter,API_URLbe } from '../../helpers/idrformat';
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 const MySwal = withReactContent(Swal)
@@ -18,12 +18,8 @@ class AdminPayment extends Component {
         confirm:[]
     }
     componentDidMount(){
-        Axios.get(`${API_URL}/transactions`,{
-            params:{
-                status: "WaitingAdmin",
-                _embed:'transactionsdetails'
-            }
-        }).then((res)=>{
+        Axios.get(`${API_URLbe}/trans/getwaitingApprove`)
+        .then((res)=>{
             this.setState({confirm:res.data})
         }).catch((err)=>{
             console.log(err)

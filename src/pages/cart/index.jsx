@@ -98,7 +98,12 @@ class Cart extends Component {
     onbayarpakeCC=()=>{
         Axios.post(`${API_URLbe}/trans/bayarcc`,{
             idtrans:this.state.idtrans,
-            nomercc:this.state.cc.current.value
+            nomercc:this.state.cc.current.value,
+            datacart:this.state.cart
+        },{
+            headers:{
+                'Authorization':`Bearer ${this.props.token}`
+            }
         }).then((res)=>{
             if(res.data === 'berhasil'){
                 this.props.AddcartAction([])
@@ -154,51 +159,74 @@ class Cart extends Component {
         // })
     }
     onbayarpakebukti=()=>{
-        Axios.post(`${API_URL}/transactions`,{
-            status:'WaitingAdmin',
-            userId:this.props.id,
-            tanggalPembayaran:new Date().getTime(),
-            metode:'upload',
-            buktipembayaran:this.state.bukti.current.value
-        }).then((res)=>{
-            var arr=[]
-            this.state.cart.forEach((val)=>{
-                arr.push(Axios.post(`${API_URL}/transactionsdetails`,{
-                    transactionId:res.data.id,
-                    productId:val.productId,
-                    price: parseInt(val.product.harga),
-                    qty:val.qty
-                }))
-            })
-            Axios.all(arr).then((res1)=>{
-                var deletearr=[]
-                this.state.cart.forEach((val)=>{
-                    deletearr.push(Axios.delete(`${API_URL}/carts/${val.id}`))
-                })
-                Axios.all(deletearr)
-                .then(()=>{
-                    Axios.get(`${API_URL}/carts`,{
-                        params:{
-                            userId:this.props.id,
-                            _expand:'product'
-                        }
-                    })
-                    .then((res3)=>{
-                        console.log(res3.data)
-                        this.props.AddcartAction([])
-                        this.setState({cart:res3.data,isOpen:false})
-                    }).catch((err)=>{
-                        console.log(err)
-                    })
-                }).catch((Err)=>{
-                    console.log(Err)
-                })
-            }).catch((err)=>{
-                console.log(err)
-            })
+        var formData=new FormData()
+        var options={
+            headers:{
+              'Content-type':'multipart/form-data',
+              'Authorization':`Bearer ${this.props.token}`
+            },
+            params:{
+                userid:this.props.id
+            }
+        }
+        formData.append('bukti',this.state.buktitrans)
+        formData.append('data',JSON.stringify({idtrans:this.state.idtrans}))
+        Axios.post(`${API_URLbe}/trans/bayarbukti`,formData,options)
+        .then((res)=>{
+            if(res.data === 'berhasil'){
+                this.props.AddcartAction([])
+                this.setState({cart:[],isOpen:false,buktitrans:null})
+            }
         }).catch((err)=>{
-
+            console.log(err)
         })
+
+
+        // Axios.post(`${API_URL}/transactions`,{
+        //     status:'WaitingAdmin',
+        //     userId:this.props.id,
+        //     tanggalPembayaran:new Date().getTime(),
+        //     metode:'upload',
+        //     buktipembayaran:this.state.bukti.current.value
+        // }).then((res)=>{
+        //     var arr=[]
+        //     this.state.cart.forEach((val)=>{
+        //         arr.push(Axios.post(`${API_URL}/transactionsdetails`,{
+        //             transactionId:res.data.id,
+        //             productId:val.productId,
+        //             price: parseInt(val.product.harga),
+        //             qty:val.qty
+        //         }))
+        //     })
+        //     Axios.all(arr).then((res1)=>{
+        //         var deletearr=[]
+        //         this.state.cart.forEach((val)=>{
+        //             deletearr.push(Axios.delete(`${API_URL}/carts/${val.id}`))
+        //         })
+        //         Axios.all(deletearr)
+        //         .then(()=>{
+        //             Axios.get(`${API_URL}/carts`,{
+        //                 params:{
+        //                     userId:this.props.id,
+        //                     _expand:'product'
+        //                 }
+        //             })
+        //             .then((res3)=>{
+        //                 console.log(res3.data)
+        //                 this.props.AddcartAction([])
+        //                 this.setState({cart:res3.data,isOpen:false})
+        //             }).catch((err)=>{
+        //                 console.log(err)
+        //             })
+        //         }).catch((Err)=>{
+        //             console.log(Err)
+        //         })
+        //     }).catch((err)=>{
+        //         console.log(err)
+        //     })
+        // }).catch((err)=>{
+
+        // })
     }
     onCheckOutClick=()=>{
         this.setState({isOpen:true})
